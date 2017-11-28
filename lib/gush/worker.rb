@@ -10,14 +10,11 @@ module Gush
       start = Time.now
       report(:started, start)
 
-      failed = false
-      error = nil
-
       mark_as_started
       begin
         job.perform
       rescue Exception => error
-        mark_as_failed
+        mark_as_failed error.message
         report(:failed, start, error.message)
         raise error
       else
@@ -56,8 +53,8 @@ module Gush
       client.persist_job(workflow.id, job)
     end
 
-    def mark_as_failed
-      job.fail!
+    def mark_as_failed(error)
+      job.fail!(error)
       client.persist_job(workflow.id, job)
     end
 
