@@ -53,7 +53,7 @@ module Gush
           "Enqueued jobs" => enqueued_jobs_count.yellow,
           "Running jobs" => running_jobs_count.blue,
           "Remaining jobs" => remaining_jobs_count,
-          "Started at" => started_at,
+          "Started at" => started_at ? Time.at(started_at.to_i) : nil,
           "Status" => status
         }
       end
