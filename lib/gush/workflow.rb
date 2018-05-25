@@ -176,6 +176,18 @@ module Gush
       }
     end
 
+    def wait_end(times: 10, delay: 1, debug: false)
+      n = 0
+      loop do
+        self.reload
+        puts "Workflow #{self.class} #{@id}, status: #{self.status}" if debug
+        break if self.finished?
+        sleep delay
+        n += 1
+        break if n >= times
+      end
+    end
+
     def to_json(options = {})
       Gush::JSON.encode(to_hash, options)
     end
