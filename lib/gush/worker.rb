@@ -15,7 +15,6 @@ module Gush
 				job.perform
 			rescue Exception => error
 				r = internal_retry error
-				ap retry: r
 				unless r
 					mark_as_failed error.message
 					report(:failed, start, error.message)
