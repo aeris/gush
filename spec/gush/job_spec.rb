@@ -75,7 +75,8 @@ describe Gush::Job do
           params: {},
           queue: nil,
           output_payload: nil,
-          workflow_id: 123
+          workflow_id: 123,
+          error: nil
         }
         expect(job.as_json).to eq(expected)
       end
