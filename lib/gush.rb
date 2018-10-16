@@ -6,6 +6,7 @@ require "pathname"
 require "redis"
 require "securerandom"
 require "multi_json"
+require "active_support/core_ext/string/inflections"
 
 require "gush/json"
 require "gush/cli"

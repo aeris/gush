@@ -1,8 +1,15 @@
-require 'active_job'
+require 'sidekiq'
 require 'redis-mutex'
 
 module Gush
-  class Worker < ::ActiveJob::Base
+  class Worker
+    include Sidekiq::Worker
+
+    sidekiq_retries_exhausted do |msg, ex|
+      mark_as_failed ex.message
+      mark_as_finished
+    end
+
     def perform(workflow_id, job_id)
       setup_job(workflow_id, job_id)
 
