@@ -4,6 +4,14 @@ module Gush
       :finished_at, :failed_at, :started_at, :enqueued_at, :payloads, :klass, :queue
     attr_reader :id, :klass, :output_payload, :params, :error
 
+    class << self
+      @options = {}
+      attr_reader :options
+      def sidekiq_options(opts={})
+        @options = opts
+      end
+    end
+
     def initialize(opts = {})
       options = opts.dup
       assign_variables(options)
@@ -30,7 +38,7 @@ module Gush
     def name
       @name ||= "#{klass}|#{id}"
     end
-    
+
     def payload(clazz)
       payload = payloads.detect { |f| f[:class] == clazz.name }
       raise "Unable to find payload for #{clazz}, available: #{payloads.collect { |f| f[:class]}}" unless payload
@@ -61,15 +69,27 @@ module Gush
       @started_at = nil
       @finished_at = nil
       @failed_at = nil
+      @error = nil
     end
 
     def finish!
       @finished_at = current_timestamp
     end
 
-    def fail!(error = nil)
-      @finished_at = @failed_at = current_timestamp
+    def error!(error)
+      @failed_at = current_timestamp
       @error = error
+    end
+
+    def succeed!
+      @failed_at = nil
+      @error = nil
+      self.finish!
+    end
+
+    def fail!(error = nil)
+      self.error! error
+      self.finish!
     end
 
     def enqueued?
@@ -94,6 +114,23 @@ module Gush
 
     def running?
       started? && !finished?
+    end
+
+    def status
+      if finished?
+        return :succeeded? if succeeded?
+        return :failed? if failed?
+        raise StandardError, 'Unknown state'
+      end
+
+      if started?
+        return :retrying if failed?
+        return :running
+      end
+
+      return :enqueued if enqueued?
+
+      :pending
     end
 
     def ready_to_start?
