@@ -11,10 +11,6 @@ module Gush
       worker.fail! ex.message
     end
 
-    sidekiq_retry_in do |count|
-      1
-    end
-
     def perform(workflow_id, job_id)
       setup_job(workflow_id, job_id)
       job.payloads = incoming_payloads
@@ -22,7 +18,7 @@ module Gush
 
       begin
         job.perform
-      rescue StandardError => error
+      rescue => error
         error! error.message
         raise error
       else
@@ -40,6 +36,8 @@ module Gush
     def setup_job(workflow_id, job_id)
       @workflow_id = workflow_id
       @job ||= client.find_job(workflow_id, job_id)
+
+      self.class.sidekiq_retry_in &@job.class.sidekiq_retry_in_block
     end
 
     def incoming_payloads
@@ -51,6 +49,11 @@ module Gush
           output: job.output_payload
         }
       end
+    end
+
+    def start!
+      job.start!
+      client.persist_job(workflow_id, job)
     end
 
     def succeed!
@@ -65,11 +68,6 @@ module Gush
 
     def fail!(error)
       job.fail!(error)
-      client.persist_job(workflow_id, job)
-    end
-
-    def start!
-      job.start!
       client.persist_job(workflow_id, job)
     end
 

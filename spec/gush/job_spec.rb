@@ -68,6 +68,7 @@ describe Gush::Job do
           klass: "Gush::Job",
           incoming: [],
           outgoing: [],
+          status: :succeeded,
           failed_at: nil,
           started_at: nil,
           finished_at: 123,

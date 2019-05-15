@@ -3,8 +3,9 @@ require 'fakeredis'
 require 'pry'
 require 'sidekiq/testing'
 
+Sidekiq.default_worker_options = { retry: false }
 Sidekiq::Testing.fake!
-Sidekiq::Logging.logger = nil
+# Sidekiq::Logging.logger = nil
 
 class Prepare < Gush::Job; end
 class FetchFirstJob < Gush::Job; end

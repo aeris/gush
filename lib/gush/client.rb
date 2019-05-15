@@ -169,9 +169,9 @@ module Gush
       persist_job(workflow_id, job)
       queue = job.queue || configuration.namespace
       options = { queue: queue }
-      opts = job.class.options
-      options.merge! opts if opts
-      Gush::Worker.set(options).perform_async(*[workflow_id, job.name])
+      options.merge! job.class.gush_options_hash
+      options.merge! job.class.sidekiq_options_hash
+      Gush::Worker.set(options).perform_async(workflow_id, job.name)
     end
 
     private
